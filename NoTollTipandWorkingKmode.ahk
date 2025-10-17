@@ -2,86 +2,182 @@
 Persistent
 #include Lib\AutoHotInterception.ahk
 
-A_IconTip := "Keyboard Toggle Script (Ctrl+Alt+K)"
+A_IconTip := "Keyboard/Remote Toggle Script"
 
-; Initialize AutoHotInterception
 global AHI := AutoHotInterception()
-
-; Use Handle method for your keyboard
-; Replace with YOUR keyboard's handle from Monitor.ahk
 global keyboardId := AHI.GetKeyboardIdFromHandle("ACPI\VEN_DLLK&DEV_0B23", 1)
 
-; Track key states for the toggle combination
+global k_mode := false
+global l_mode := false
 global ctrlPressed := false
 global altPressed := false
-global keyboard_locked := false
+global mouseHook := 0
+global keyboardHook := 0
 
-; Start by subscribing to the entire keyboard in block mode
+; Map scan codes to key names for fallback
+global scanCodeToKey := Map(
+    59, "F1", 60, "F2", 61, "F3", 62, "F4", 63, "F5", 
+    64, "F6", 65, "F7", 66, "F8", 67, "F9", 68, "F10",
+    87, "F11", 88, "F12", 338, "Insert"
+)
+
 AHI.SubscribeKeyboard(keyboardId, true, KeyboardEvent)
 
-; Main keyboard event handler - handles ALL keys
+LWin::return
+RWin::return
+~LWin Up::return
+~RWin Up::return
+
 KeyboardEvent(code, state) {
-    global ctrlPressed, altPressed, keyboard_locked, AHI, keyboardId
+    global ctrlPressed, altPressed, k_mode, l_mode, AHI, keyboardId, scanCodeToKey
     
-    ; Track Ctrl key state (29 = Left Ctrl, 157 = Right Ctrl with E0)
     if (code = 29 || code = 157) {
         ctrlPressed := state
     }
     
-    ; Track Alt key state (56 = Left Alt, 184 = Right Alt with E0)
     if (code = 56 || code = 184) {
         altPressed := state
     }
     
-    ; Track K key (37) and check for toggle combination
-    if (code = 37 && state = 1) {  ; K key pressed down
+    ; K key (37) - K mode toggle
+    if (code = 37 && state = 1) {
         if (ctrlPressed && altPressed) {
-            ; Toggle the keyboard lock state
-            keyboard_locked := !keyboard_locked
-            
-            if (keyboard_locked) {
-                ; Release all modifier keys to prevent stuck keys
-                ReleaseAllModifiers()
-                ToolTip("Keyboard Disabled")
+            if (l_mode) {
+                l_mode := false
+                StopRemoteBlock()
+                k_mode := true
+                SetTimer(() => ForceReleaseModifiers(), -50)
+            } else if (k_mode) {
+                k_mode := false
             } else {
-                ToolTip("Keyboard Enabled")
+                k_mode := true
+                SetTimer(() => ForceReleaseModifiers(), -50)
             }
-            
-            SetTimer(RemoveToolTip, -1)
-            return  ; Block this keypress
+            return
         }
     }
     
-    ; When keyboard is locked, block all keys
-    if (keyboard_locked) {
-        return  ; Block the key
+    ; L key (38) - L mode toggle
+    if (code = 38 && state = 1) {
+        if (ctrlPressed && altPressed) {
+            if (k_mode) {
+                k_mode := false
+                l_mode := true
+                StartRemoteBlock()
+                SetTimer(() => ForceReleaseModifiers(), -50)
+            } else if (l_mode) {
+                l_mode := false
+                StopRemoteBlock()
+            } else {
+                l_mode := true
+                StartRemoteBlock()
+                SetTimer(() => ForceReleaseModifiers(), -50)
+            }
+            return
+        }
     }
     
-    ; When keyboard is unlocked, send the key through
-    ; Use try-catch to prevent script from breaking on errors
+    ; K mode: Block home keyboard
+    if (k_mode) {
+        if ((code = 29 || code = 157 || code = 56 || code = 184) && state = 0) {
+            try {
+                AHI.SendKeyEvent(keyboardId, code, state)
+            }
+        }
+        return
+    }
+    
+    ; Send key through - with fallback for problematic keys
     try {
         AHI.SendKeyEvent(keyboardId, code, state)
-    } catch as err {
-        ; If SendKeyEvent fails, just ignore and continue
-        ; This prevents the script from crashing on certain keys
-    }
-}
-
-; Release all modifier keys to prevent them from getting stuck
-ReleaseAllModifiers() {
-    ; List of all modifier keys to release
-    modifiers := ["LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"]
-    
-    for index, key in modifiers {
-        ; Check if the key is logically down
-        if GetKeyState(key) {
-            ; Send the key up event to release it
-            Send("{" key " up}")
+    } catch {
+        ; If SendKeyEvent fails, use regular Send as fallback
+        if (scanCodeToKey.Has(code)) {
+            keyName := scanCodeToKey[code]
+            if (state = 1) {
+                Send("{" . keyName . " down}")
+            } else {
+                Send("{" . keyName . " up}")
+            }
         }
     }
 }
 
-; Remove tooltip
-RemoveToolTip() {
-    ToolTip()
+ForceReleaseModifiers() {
+    global AHI, keyboardId
+    
+    modifierCodes := [29, 157, 56, 184, 42, 54]
+    
+    for index, code in modifierCodes {
+        try {
+            AHI.SendKeyEvent(keyboardId, code, 0)
+        }
+    }
+    
+    Send("{LControl up}{RControl up}{LAlt up}{RAlt up}{LShift up}{RShift up}")
+}
+
+StartRemoteBlock() {
+    global mouseHook, keyboardHook
+    
+    mouseHook := DllCall("SetWindowsHookEx", "Int", 14, "Ptr", CallbackCreate(MouseHookProc), 
+                         "Ptr", DllCall("GetModuleHandle", "Ptr", 0, "Ptr"), "UInt", 0, "Ptr")
+    
+    keyboardHook := DllCall("SetWindowsHookEx", "Int", 13, "Ptr", CallbackCreate(KeyboardHookProc),
+                           "Ptr", DllCall("GetModuleHandle", "Ptr", 0, "Ptr"), "UInt", 0, "Ptr")
+}
+
+StopRemoteBlock() {
+    global mouseHook, keyboardHook
+    
+    if (mouseHook) {
+        DllCall("UnhookWindowsHookEx", "Ptr", mouseHook)
+        mouseHook := 0
+    }
+    
+    if (keyboardHook) {
+        DllCall("UnhookWindowsHookEx", "Ptr", keyboardHook)
+        keyboardHook := 0
+    }
+}
+
+MouseHookProc(nCode, wParam, lParam) {
+    global l_mode
+    
+    if (nCode >= 0 && l_mode) {
+        flags := NumGet(lParam + 12, "UInt")
+        dwExtraInfo := NumGet(lParam + 20, "UPtr")
+        
+        if (flags & 0x01 || dwExtraInfo != 0) {
+            return 1
+        }
+    }
+    
+    return DllCall("CallNextHookEx", "Ptr", 0, "Int", nCode, "UInt", wParam, "UInt", lParam)
+}
+
+KeyboardHookProc(nCode, wParam, lParam) {
+    global l_mode
+    
+    if (nCode >= 0 && l_mode) {
+        vkCode := NumGet(lParam, "UInt")
+        flags := NumGet(lParam + 8, "UInt")
+        dwExtraInfo := NumGet(lParam + 16, "UPtr")
+        
+        if ((vkCode = 0x4B || vkCode = 0x4C) && GetKeyState("Ctrl") && GetKeyState("Alt")) {
+            ; Allow Ctrl+Alt+K and Ctrl+Alt+L
+        } else if (flags & 0x10) {
+            return 1
+        } else if (dwExtraInfo != 0) {
+            return 1
+        }
+    }
+    
+    return DllCall("CallNextHookEx", "Ptr", 0, "Int", nCode, "UInt", wParam, "UInt", lParam)
+}
+
+OnExit(ExitCleanup)
+
+ExitCleanup(*) {
+    StopRemoteBlock()
 }
