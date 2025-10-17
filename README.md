@@ -1,76 +1,72 @@
-# Keyboard Toggle Script - README
+# Keyboard & Remote Input Control Script (about the Final version)
 
-## Overview
-
-This AutoHotkey v2 script allows you to toggle your physical keyboard input on/off using **Ctrl+Alt+K**. When disabled, all keyboard input is blocked (except the toggle combination itself), making it useful for remote desktop sessions or preventing accidental key presses.
-
-## Prerequisites
-
-- AutoHotkey v2
-- AutoHotInterception library
-- The `AutoHotInterception.ahk` file must be located in `Lib\` folder relative to the script
-
-## Setup Instructions
-
-### 1. Install AutoHotInterception
-
-Download and extract AutoHotInterception, ensuring the following structure:
-```
-YourScriptFolder/
-├── KeyboardToggle.ahk (your script)
-└── Lib/
-    └── AutoHotInterception.ahk
-```
-
-### 2. Find Your Keyboard Handle
-
-Run the `Monitor.ahk` script included with AutoHotInterception to identify your keyboard's handle. Look for an entry like:
-```
-ACPI\VEN_DLLK&DEV_0B23
-```
-
-### 3. Update the Script
-
-Replace the keyboard handle in line 11:
-```ahk
-global keyboardId := AHI.GetKeyboardIdFromHandle("YOUR_KEYBOARD_HANDLE_HERE", 1)
-```
+A script to selectively block physical keyboard and remote desktop inputs when using Chrome Remote Desktop.
 
 ## Usage
 
-1. **Run the script** - A system tray icon appears with tooltip "Keyboard Toggle Script (Ctrl+Alt+K)"
-2. **Press Ctrl+Alt+K** to disable the keyboard
-   - A tooltip appears: "Keyboard Disabled"
-   - All keyboard input is now blocked
-3. **Press Ctrl+Alt+K again** to enable the keyboard
-   - A tooltip appears: "Keyboard Enabled"
+Run the script on your **home computer** (the physical Dell laptop being accessed remotely).
 
-## Features
+## Modes
 
-- **Complete keyboard blocking** when disabled (including modifier keys)
-- **Automatic modifier key release** when toggling to prevent stuck keys
-- **Visual feedback** via tooltips
-- **Error handling** to prevent script crashes
-- **Single instance** - only one copy runs at a time
+### K Mode - `Ctrl + Alt + K`
+**Blocks:** Home computer physical keyboard  
+**Allows:** Remote computer (work PC) keyboard and mouse
 
-## Troubleshooting
+When K mode is active:
+- Physical laptop keyboard is disabled
+- Remote inputs from work computer work normally
+- Physical mouse on home computer works normally
+- Brief "K" tooltip appears
 
-**Script doesn't block keyboard:**
-- Verify your keyboard handle is correct using `Monitor.ahk`
-- Ensure AutoHotInterception drivers are properly installed
-- Try running the script as Administrator
+### L Mode - `Ctrl + Alt + L`
+**Blocks:** Remote computer (work PC) keyboard and mouse  
+**Allows:** Home computer physical keyboard and mouse
 
-**Keys get stuck:**
-- The script automatically releases all modifier keys when toggling
-- If issues persist, manually press and release stuck keys
+When L mode is active:
+- All remote inputs are blocked
+- Physical keyboard and mouse work normally
+- Brief "L" tooltip appears
 
-**Toggle combination doesn't work:**
-- Ensure both Ctrl and Alt are pressed before pressing K
-- Check if another program is intercepting the hotkey
+### Normal Mode
+**Allows:** Everything works normally
 
-## Technical Details
+When both modes are off:
+- Brief empty tooltip appears
+- All inputs work as expected
 
-- Uses blocking mode subscription to intercept all keyboard events
-- Tracks modifier key states (Ctrl/Alt) to detect toggle combination
-- Scan code 37 = K key, 29 = Left Ctrl, 56 = Left Alt
-- Implements `SendKeyEvent()` passthrough when keyboard is unlocked
+## Mode Switching Behavior
+
+| Current State | Press K Combo | Press L Combo |
+|--------------|---------------|---------------|
+| Normal (both off) | Activates K Mode | Activates L Mode |
+| K Mode ON | Toggles OFF (to Normal) | Switches to L Mode |
+| L Mode ON | Switches to K Mode | Toggles OFF (to Normal) |
+
+## Special Features
+
+### Windows Key
+The Windows key is **permanently disabled** in all modes (including Normal mode) on both physical and remote keyboards to prevent accidental Start menu activation.
+
+### Key Release Protection
+When switching between modes, all modifier keys (Ctrl, Alt, Shift) are automatically released to prevent stuck keys and typing errors.
+
+### Function Keys & Insert
+F1-F12 and Insert keys work properly in all modes with automatic fallback handling.
+
+## Quick Reference
+
+- `Ctrl + Alt + K` = Toggle/Switch to K Mode (block physical keyboard)
+- `Ctrl + Alt + L` = Toggle/Switch to L Mode (block remote inputs)
+- **These combinations always work** regardless of current mode
+- Tooltips display current mode briefly (0.8 seconds)
+- Windows key is always blocked
+
+## Use Cases
+
+**Working remotely, want to lock physical keyboard:** Press `Ctrl + Alt + K`
+
+**Need to prevent accidental remote inputs:** Press `Ctrl + Alt + L`
+
+**Switch from remote work back to physical use:** From K mode, press `Ctrl + Alt + L`
+
+**Return to normal operation:** Press the same combination again to toggle off
