@@ -1,0 +1,400 @@
+(K mode) -> I want to develop a solution for blocking physical keyboard by pressing ctrl + alt + k and then when I press ctrl + alt + k again then it should end the disabling of my physical keyboard and my physical keyboard should work fine. Now when I access this physical computer(home computer) with my other pc(work computer) using chrome remote desktop then if i have disabled the keyboard using ctrl + alt + k on my home computer then it should only disable the physical keyboard of the home computer not the work computer. Also the disable should only work by pressing the combination on the physical keyboard of the home computer not the remote computer.
+
+(L mode) -> Now to further add i also want a feature to press ctrl + alt + L  (on my home computer) to toggle b/w "receiving" any mouse & keyboard input from the work computer. i.e i press the "L" combination and it should not move my move or write anything on my home computer until i press the L combination again. When the L combination is ON then my physical inputs (mouse and keyboard of home computer) should work fine.
+
+
+Further note that when the physical keyboard is locked of the home computer using the K combination then all the keys should be 'released' so that the remote computer can type easily without the errors (the weird character that are typed when alt is pressed or the action that are preformed when the ctrl is pressed). So when togelling b/w any mode make sure to release the key to avoid the key stuck error.
+
+Suppose when the K mode is on and in b/w if I press L modes combination (make sure when disabling the physical keyboard on my home computer using the K combination I can still use the Ctrl + alt + K and Ctrl + alt + L, individual key should not work but both the combination should work always in any mode not matter what) then the script should make the switch so that the remote inputs are blocked as described in the L mode but the physical inputs from the home computer work (keybord and mouse) properly. i.e the K mode is turned off and the L mode is turned ON when I press L mode combination while the K mode combination is on.
+
+When the L mode is on and I press K mode combination then it should work fine, blocking the physical keyboard keys (while L and K mode combination should still work).
+
+
+Also when the script is turned on then the windows key should not work. I mean it should not work even I press it in the home or work computer no matter the mode or any thing
+
+
+what is mentioned here as physical keyboard is the in build laptop keyboard. my laptop is dell (motioned as physical computer or home computer). 
+Make sure no key is "stuck" when I turn toggle b/w modes!!. Always give AHK V2 script (if at all you are using that in your solution)
+
+
+
+I have used the tolls mentioned in the instructions pasted below, not as is but the things work as intended.
+
+
+\\\\\\-------pasted instructions------------\\\\\\\\\\
+
+
+Prerequisites
+Required Software
+Install AutoHotkey first (if not already installed):
+
+Download AutoHotkey v1.1 or v2 from autohotkey.com
+
+Run the installer and complete the installation​
+
+Install Interception Driver
+Step 1: Download the Interception driver from the official GitHub repository​
+
+Step 2: Extract the downloaded zip file to a folder
+
+Step 3: Open Command Prompt as Administrator:
+
+Press Windows key, type "cmd"
+
+Right-click "Command Prompt" and select "Run as administrator"​
+
+Step 4: Navigate to the Interception folder:
+
+Type cd followed by a space
+
+Copy the folder path where you extracted the Interception files
+
+Paste it into the command prompt and press Enter​
+
+Step 5: Run the installer:
+
+Type: install-interception.exe /install
+
+Press Enter​​
+
+Step 6: Restart your computer for the driver to take effect​
+
+Install AutoHotInterception
+Step 1: Download AutoHotInterception:
+
+Go to github.com/evilC/AutoHotInterception
+
+Click on "Releases" on the right side
+
+Download version 0.5.2 or later (not the "Clone or Download" button)​​
+
+Step 2: Extract the AutoHotInterception zip file to a convenient location (e.g., Desktop\AutoHotInterception)
+
+Step 3: Choose your AutoHotkey version:
+
+If using AHK v1: Extract the "AHK v1" folder from the zip
+
+If using AHK v2: Extract the "AHK v2" folder from the zip​
+
+Step 4: Copy the AutoHotInterception.dll:
+
+In the downloaded zip, navigate to Common\lib folder
+
+Copy AutoHotInterception.dll
+
+Paste it into the lib folder within your extracted AHK v1 or v2 folder​
+
+Step 5: Copy Interception library files:
+
+Go back to the Interception driver folder you downloaded earlier
+
+Find the library folder containing x86 and x64 subfolders
+
+Copy both the x86 and x64 folders
+
+Paste them into the lib folder of your AutoHotInterception working folder​​
+
+Step 6: Unblock the DLL files:
+
+Navigate to the lib folder
+
+Right-click Unblocker.ps1 and select "Run with PowerShell" or "Run as Administrator"​​
+
+Step 7: Test the installation:
+
+Navigate to your AutoHotInterception folder
+
+Double-click Monitor.ahk
+
+A window should open showing all connected keyboards and mice​​
+
+Find Your Keyboard Hardware ID
+Step 1: Run the Monitor tool:
+
+Open Monitor.ahk from your AutoHotInterception folder​​
+
+Step 2: Identify your keyboard:
+
+Look at the list of devices in the Monitor window
+
+Important: Check devices one at a time (don't check all at once to avoid crashes)​
+
+For each keyboard device, note the VID (Vendor ID) and PID (Product ID) or Handle
+
+Test by pressing keys on your physical keyboard to see which device lights up​​
+
+Step 3: Copy the keyboard identifier:
+
+\\\\\\\\\\\\\-----------end of the pasted content-----------\\\\\\\\\\ 
+
+
+
+
+The file structure of the current solution is:
+
+PS C:\Users\sajee\Desktop\Hotkeys> Get-ChildItem -Recurse
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:45                AutoHotInterception
+d-----        09-10-2025     03:14                Interception
+-a----        10-10-2025     18:01           5392 README.md
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16-10-2025     02:01                AHK v2
+d-----        09-10-2025     03:14                Common
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception\AHK v2
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:15                Lib
+-a----        09-10-2025     01:43          36352 AutoHotInterception.dll
+-a----        09-10-2025     01:43            397 Context Example.ahk
+-a----        10-10-2025     06:09           2627 KeyboardBlocker.ahk
+-a----        09-10-2025     01:43           6522 Monitor.ahk
+-a----        09-10-2025     01:43            527 SubscribeAll Example.ahk
+-a----        09-10-2025     01:43            299 Subscription Example.ahk
+-a----        09-10-2025     01:43           1368 test.ahk
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception\AHK v2\Lib
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:15                x64
+d-----        21-03-2023     18:54                x86
+-a----        09-10-2025     01:43           7472 AutoHotInterception.ahk
+-a----        09-10-2025     01:43          36352 AutoHotInterception.dll
+-a----        09-10-2025     01:43           5106 CLR.ahk
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception\AHK v2\Lib\x64
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:43          11264 interception.dll
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception\Common
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                Lib
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\AutoHotInterception\Common\Lib
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:43          36352 AutoHotInterception.dll
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                Interception
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                command line installer
+d-----        09-10-2025     03:14                library
+d-----        09-10-2025     03:14                licenses
+d-----        09-10-2025     03:14                samples
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\command line installer
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17         470528 install-interception.exe
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\library
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                x64
+d-----        09-10-2025     03:14                x86
+-a----        09-10-2025     01:17           7601 interception.h
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\library\x64
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17          11264 interception.dll
+-a----        09-10-2025     01:17           5174 interception.lib
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\library\x86
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17          10752 interception.dll
+-a----        09-10-2025     01:17           5232 interception.lib
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\licenses
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                commercial-usage
+d-----        09-10-2025     03:14                non-commercial-usage
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\licenses\commercial-usage
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17          22419 Interception API.pdf
+-a----        09-10-2025     01:17          78798 Interception.pdf
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\licenses\non-commercial-usage
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17           7651 LGPL 3.0.txt
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\samples
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        09-10-2025     03:14                x86
+
+
+    Directory: C:\Users\sajee\Desktop\Hotkeys\Interception\Interception\samples\x86
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09-10-2025     01:17           8704 axes.exe
+-a----        09-10-2025     01:17          29184 cadstop.exe
+-a----        09-10-2025     01:17          15872 caps2esc.exe
+-a----        09-10-2025     01:17          30720 hardwareid.exe
+-a----        09-10-2025     01:17          40960 identify.exe
+-a----        09-10-2025     01:17          10752 interception.dll
+-a----        09-10-2025     01:17          44544 mathpointer.exe
+-a----        09-10-2025     01:17           8192 x2y.exe
+
+
+
+the current working script to block the home computer keyboard input is (AHK V2):
+#SingleInstance force
+Persistent
+#include Lib\AutoHotInterception.ahk
+
+A_IconTip := "Keyboard Toggle Script (Ctrl+Alt+K)"
+
+; Initialize AutoHotInterception
+global AHI := AutoHotInterception()
+
+; Use Handle method for your keyboard
+; Replace with YOUR keyboard's handle from Monitor.ahk
+global keyboardId := AHI.GetKeyboardIdFromHandle("ACPI\VEN_DLLK&DEV_0B23", 1)
+
+; Track key states for the toggle combination
+global ctrlPressed := false
+global altPressed := false
+global keyboard_locked := false
+
+; Start by subscribing to the entire keyboard in block mode
+AHI.SubscribeKeyboard(keyboardId, true, KeyboardEvent)
+
+; Main keyboard event handler - handles ALL keys
+KeyboardEvent(code, state) {
+    global ctrlPressed, altPressed, keyboard_locked, AHI, keyboardId
+    
+    ; Track Ctrl key state (29 = Left Ctrl, 157 = Right Ctrl with E0)
+    if (code = 29 || code = 157) {
+        ctrlPressed := state
+    }
+    
+    ; Track Alt key state (56 = Left Alt, 184 = Right Alt with E0)
+    if (code = 56 || code = 184) {
+        altPressed := state
+    }
+    
+    ; Track K key (37) and check for toggle combination
+    if (code = 37 && state = 1) {  ; K key pressed down
+        if (ctrlPressed && altPressed) {
+            ; Toggle the keyboard lock state
+            keyboard_locked := !keyboard_locked
+            
+            if (keyboard_locked) {
+                ; Release all modifier keys to prevent stuck keys
+                ReleaseAllModifiers()
+                ToolTip("Keyboard Disabled")
+            } else {
+                ToolTip("Keyboard Enabled")
+            }
+            
+            SetTimer(RemoveToolTip, -1)
+            return  ; Block this keypress
+        }
+    }
+    
+    ; When keyboard is locked, block all keys
+    if (keyboard_locked) {
+        return  ; Block the key
+    }
+    
+    ; When keyboard is unlocked, send the key through
+    ; Use try-catch to prevent script from breaking on errors
+    try {
+        AHI.SendKeyEvent(keyboardId, code, state)
+    } catch as err {
+        ; If SendKeyEvent fails, just ignore and continue
+        ; This prevents the script from crashing on certain keys
+    }
+}
+
+; Release all modifier keys to prevent them from getting stuck
+ReleaseAllModifiers() {
+    ; List of all modifier keys to release
+    modifiers := ["LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"]
+    
+    for index, key in modifiers {
+        ; Check if the key is logically down
+        if GetKeyState(key) {
+            ; Send the key up event to release it
+            Send("{" key " up}")
+        }
+    }
+}
+
+; Remove tooltip
+RemoveToolTip() {
+    ToolTip()
+}
